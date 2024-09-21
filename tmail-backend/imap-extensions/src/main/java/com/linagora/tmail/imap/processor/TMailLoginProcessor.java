@@ -1,4 +1,4 @@
-package com.linagora.tmail.imap;
+package com.linagora.tmail.imap.processor;
 
 import java.util.Optional;
 

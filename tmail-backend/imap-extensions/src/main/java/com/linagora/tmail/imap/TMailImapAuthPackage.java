@@ -1,5 +1,7 @@
 package com.linagora.tmail.imap;
 
+import com.linagora.tmail.imap.processor.TMailAuthenticateProcessor;
+import com.linagora.tmail.imap.processor.TMailLoginProcessor;
 import jakarta.inject.Inject;
 
 import org.apache.james.imap.decode.parser.AuthenticateCommandParser;
