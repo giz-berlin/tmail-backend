@@ -1,7 +1,5 @@
 package com.linagora.tmail.imap;
 
-import com.linagora.tmail.imap.processor.TMailAuthenticateProcessor;
-import com.linagora.tmail.imap.processor.TMailLoginProcessor;
 import jakarta.inject.Inject;
 
 import org.apache.james.imap.decode.parser.AuthenticateCommandParser;
@@ -10,15 +8,17 @@ import org.apache.james.modules.protocols.ImapPackage;
 import org.apache.james.utils.ClassName;
 
 import com.google.common.collect.ImmutableList;
+import com.linagora.tmail.imap.processor.TMailAuthenticateProcessor;
+import com.linagora.tmail.imap.processor.TMailLoginProcessor;
 
 public class TMailImapAuthPackage extends ImapPackage.Impl {
 
     @Inject
     public TMailImapAuthPackage() {
         super(ImmutableList.of(new ClassName(TMailLoginProcessor.class.getCanonicalName()),
-                new ClassName(TMailAuthenticateProcessor.class.getCanonicalName())),
-            ImmutableList.of(new ClassName(LoginCommandParser.class.getCanonicalName()),
-                new ClassName(AuthenticateCommandParser.class.getCanonicalName())),
-            ImmutableList.of());
+                        new ClassName(TMailAuthenticateProcessor.class.getCanonicalName())),
+                ImmutableList.of(new ClassName(LoginCommandParser.class.getCanonicalName()),
+                        new ClassName(AuthenticateCommandParser.class.getCanonicalName())),
+                ImmutableList.of());
     }
 }

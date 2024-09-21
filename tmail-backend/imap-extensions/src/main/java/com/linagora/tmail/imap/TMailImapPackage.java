@@ -1,10 +1,11 @@
 package com.linagora.tmail.imap;
 
+import org.apache.james.modules.protocols.ImapPackage;
+import org.apache.james.utils.ClassName;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
-import org.apache.james.modules.protocols.ImapPackage;
-import org.apache.james.utils.ClassName;
 
 public class TMailImapPackage extends ImapPackage.Impl {
 
