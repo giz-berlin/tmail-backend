@@ -50,8 +50,20 @@ public class TMailPathConverter implements PathConverter {
     }
 
     public Optional<String> mailboxName(boolean relative, MailboxPath path, MailboxSession session) {
+
         if (path.getNamespace().equalsIgnoreCase(TeamMailboxNameSpace.TEAM_MAILBOX_NAMESPACE())) {
-            return Optional.of(path.getNamespace() + session.getPathDelimiter() + path.getName());
+            // FIXME: hacky implementation
+            // Convert local path like MailboxPath(#Teammailbox, team-mailbox@<domain>, <teamXXX>/<folder>)
+            // to external representation like #TeamMailbox/<teamXXX>@<domain>/<folder>
+            List<String> mailboxNameParts = Splitter.on(session.getPathDelimiter()).splitToList(path.getName());
+            String rest = Joiner.on(mailboxSession.getPathDelimiter()).join(Iterables.skip(mailboxNameParts, 1));
+            if (!rest.isEmpty()) {
+                rest = mailboxSession.getPathDelimiter() + rest;
+            }
+            Optional<String> res = Optional.of(path.getNamespace() + session.getPathDelimiter() + mailboxNameParts.getFirst()
+                    + "@" + path.getUser().getDomainPart().map(Domain::asString).orElse("local").replace(String.valueOf(session.getPathDelimiter()), "__")
+                    + rest);
+            return res;
         } else {
             return defaultpathConverter.mailboxName(relative, path, session);
         }
@@ -93,12 +105,27 @@ public class TMailPathConverter implements PathConverter {
     }
 
     private MailboxPath getTeamMailboxPath(String absolutePath) {
+        // FIXME: hacky implementation
+        // Convert absolute path like #TeamMailbox/<teamXXX>@<domain>/<folder> to local representation
+        // MailboxPath(#Teammailbox, team-mailbox@<domain>, <teamXXX>/<folder>)
+
         List<String> mailboxPathParts = Splitter.on(mailboxSession.getPathDelimiter()).splitToList(absolutePath);
         String mailboxName = Joiner.on(mailboxSession.getPathDelimiter()).join(Iterables.skip(mailboxPathParts, 1));
-        return new MailboxPath(TeamMailboxNameSpace.TEAM_MAILBOX_NAMESPACE(), teamMailboxUsername(mailboxSession), mailboxName);
+        List<String> mailboxNameParts = Splitter.on("@").splitToList(mailboxName);
+        if (mailboxNameParts.size() < 2) {
+            return new MailboxPath(TeamMailboxNameSpace.TEAM_MAILBOX_NAMESPACE(), null, mailboxNameParts.getFirst());
+        }
+
+        List<String> mailboxNameParts2 = Splitter.on(mailboxSession.getPathDelimiter()).splitToList(mailboxNameParts.get(1));
+        String rest = Joiner.on(mailboxSession.getPathDelimiter()).join(Iterables.skip(mailboxNameParts2, 1));
+        if (!rest.isEmpty()) {
+            rest = mailboxSession.getPathDelimiter() + rest;
+        }
+        MailboxPath res = new MailboxPath(TeamMailboxNameSpace.TEAM_MAILBOX_NAMESPACE(), teamMailboxUsername(mailboxNameParts2.getFirst().replace("__", String.valueOf(mailboxSession.getPathDelimiter()))), mailboxNameParts.getFirst() + rest);
+        return res;
     }
 
-    private Username teamMailboxUsername(MailboxSession mailboxSession) {
-        return Username.from(TeamMailbox.TEAM_MAILBOX_LOCAL_PART(), mailboxSession.getUser().getDomainPart().map(Domain::asString));
+    private Username teamMailboxUsername(String domain) {
+        return Username.from(TeamMailbox.TEAM_MAILBOX_LOCAL_PART(), Optional.of(domain));
     }
 }
