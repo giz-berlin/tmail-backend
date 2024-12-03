@@ -199,7 +199,7 @@ public record BlobStoreConfiguration(BlobStoreImplName implementation,
 
         if (deduplicationEnabled) {
             return builder()
-                .implementation(BlobStoreImplName.S3)
+                .implementation(blobStoreImplName)
                 .secondaryS3BlobStore(parseS3BlobStoreConfiguration(configuration))
                 .enableCache(cacheEnabled)
                 .deduplication()
@@ -207,7 +207,7 @@ public record BlobStoreConfiguration(BlobStoreImplName implementation,
                 .enableSingleSave(singleSaveEnabled);
         } else {
             return builder()
-                .implementation(BlobStoreImplName.S3)
+                .implementation(blobStoreImplName)
                 .secondaryS3BlobStore(parseS3BlobStoreConfiguration(configuration))
                 .enableCache(cacheEnabled)
                 .passthrough()
