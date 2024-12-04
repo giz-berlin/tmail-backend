@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+import com.linagora.tmail.imap.TMailCrossDomainIMAPModule;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.james.ExtraProperties;
 import org.apache.james.GuiceJamesServer;
@@ -307,7 +308,7 @@ public class PostgresTmailServer {
             new PostgresTicketStoreModule(),
             new TasksHeathCheckModule(),
             chooseEventBusModules(configuration),
-            new TMailIMAPModule());
+            chooseIMAPModule(configuration));
 
     private static final Module SCANNING_QUOTA_SEARCH_MODULE = new AbstractModule() {
         @Override
@@ -411,6 +412,14 @@ public class PostgresTmailServer {
             return new JMAPEventBusModule();
         }
         return Modules.EMPTY_MODULE;
+    }
+
+    public static Module chooseIMAPModule(PostgresTmailConfiguration configuration) {
+        if (configuration.teamMailboxFullDomainEnabled()) {
+            return new TMailCrossDomainIMAPModule();
+        } else {
+            return new TMailIMAPModule();
+        }
     }
 
     private static List<Module> chooseFirebase(FirebaseModuleChooserConfiguration moduleChooserConfiguration) {
