@@ -36,6 +36,7 @@ public record PostgresTmailConfiguration(ConfigurationPath configurationPath, Ja
                                          LinagoraServicesDiscoveryModuleChooserConfiguration linagoraServicesDiscoveryModuleChooserConfiguration,
                                          boolean jmapEnabled,
                                          boolean rlsEnabled,
+                                         boolean teamMailboxFullDomainEnabled,
                                          PropertiesProvider propertiesProvider,
                                          PostgresJamesConfiguration.EventBusImpl eventBusImpl) implements Configuration {
     public static class Builder {
@@ -50,6 +51,7 @@ public record PostgresTmailConfiguration(ConfigurationPath configurationPath, Ja
         private Optional<LinagoraServicesDiscoveryModuleChooserConfiguration> linagoraServicesDiscoveryModuleChooserConfiguration;
         private Optional<Boolean> jmapEnabled;
         private Optional<Boolean> rlsEnabled;
+        private Optional<Boolean> teamMailboxFullDomainEnabled;
         private Optional<PostgresJamesConfiguration.EventBusImpl> eventBusImpl;
 
         private Builder() {
@@ -64,6 +66,7 @@ public record PostgresTmailConfiguration(ConfigurationPath configurationPath, Ja
             linagoraServicesDiscoveryModuleChooserConfiguration = Optional.empty();
             jmapEnabled = Optional.empty();
             rlsEnabled = Optional.empty();
+            teamMailboxFullDomainEnabled = Optional.empty();
             eventBusImpl = Optional.empty();
         }
 
@@ -140,6 +143,11 @@ public record PostgresTmailConfiguration(ConfigurationPath configurationPath, Ja
             return this;
         }
 
+        public Builder teamMailboxFullDomainEnabled(Optional<Boolean> teamMailboxFullDomainEnabled) {
+            this.teamMailboxFullDomainEnabled = teamMailboxFullDomainEnabled;
+            return this;
+        }
+
         public Builder eventBusImpl(PostgresJamesConfiguration.EventBusImpl eventBusImpl) {
             this.eventBusImpl = Optional.of(eventBusImpl);
             return this;
@@ -190,6 +198,16 @@ public record PostgresTmailConfiguration(ConfigurationPath configurationPath, Ja
 
             boolean rlsEnabled = this.rlsEnabled.orElse(readRLSEnabledFromFile(propertiesProvider));
 
+            boolean teamMailboxFullDomainEnabled = this.teamMailboxFullDomainEnabled.orElseGet(() -> {
+                try {
+                    return propertiesProvider.getConfiguration("imap").getBoolean("imap.teamMailbox.fullDomain.enabled");
+                } catch (FileNotFoundException e) {
+                    return false;
+                } catch (ConfigurationException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
             PostgresJamesConfiguration.EventBusImpl eventBusImpl = this.eventBusImpl.orElseGet(() -> PostgresJamesConfiguration.EventBusImpl.from(propertiesProvider));
 
             return new PostgresTmailConfiguration(
@@ -204,6 +222,7 @@ public record PostgresTmailConfiguration(ConfigurationPath configurationPath, Ja
                 servicesDiscoveryModuleChooserConfiguration,
                 jmapEnabled,
                 rlsEnabled,
+                    teamMailboxFullDomainEnabled,
                 propertiesProvider,
                 eventBusImpl);
         }
